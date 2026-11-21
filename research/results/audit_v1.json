@@ -1,0 +1,183 @@
+{
+  "sampled": 300,
+  "reachable": 295,
+  "with_instruction_files": 135,
+  "with_rules": 134,
+  "rules": 14710,
+  "status": {
+    "judgment": 14481,
+    "enforced": 20,
+    "enforceable": 209
+  },
+  "repos_with_unenforced_checkable_rule": 61,
+  "median_enforceable_per_repo": 0,
+  "tools": {
+    "trellis": 147,
+    "eslint": 65,
+    "ruff": 17
+  },
+  "top_enforceable": [
+    [
+      "keep PRs in scope",
+      37
+    ],
+    [
+      "no `any`",
+      14
+    ],
+    [
+      "no CI changes without a reason",
+      8
+    ],
+    [
+      "no unexplained lint or type suppressions",
+      6
+    ],
+    [
+      "no commented-out code",
+      5
+    ],
+    [
+      "strict equality",
+      4
+    ],
+    [
+      "no stray summary or notes files",
+      4
+    ],
+    [
+      "type annotations",
+      4
+    ],
+    [
+      "no workarounds explained away in comments",
+      3
+    ],
+    [
+      "no print()",
+      3
+    ],
+    [
+      "protect CHANGELOG.md",
+      3
+    ],
+    [
+      "no TypeScript enums",
+      3
+    ],
+    [
+      "no unused imports or variables",
+      2
+    ],
+    [
+      "ban import Co-authored-by",
+      2
+    ],
+    [
+      "ban global",
+      2
+    ],
+    [
+      "no console.log",
+      2
+    ],
+    [
+      "ban progress_card",
+      2
+    ],
+    [
+      "named exports only",
+      2
+    ],
+    [
+      "ban unknown",
+      2
+    ],
+    [
+      "ban CommonInterface",
+      2
+    ],
+    [
+      "ban import Engine/",
+      2
+    ],
+    [
+      "protect dist/**",
+      2
+    ],
+    [
+      "ban Effect.succeed(undefined)",
+      2
+    ],
+    [
+      "ban import dpctl.tensor",
+      1
+    ],
+    [
+      "ban np.asarray()",
+      1
+    ]
+  ],
+  "instruction_files": [
+    [
+      "AGENTS.md",
+      82
+    ],
+    [
+      "CLAUDE.md",
+      77
+    ],
+    [
+      ".github/copilot-instructions.md",
+      32
+    ],
+    [
+      "GEMINI.md",
+      5
+    ],
+    [
+      "docs/AGENTS.md",
+      4
+    ],
+    [
+      ".cursorrules",
+      4
+    ],
+    [
+      ".claude/CLAUDE.md",
+      3
+    ],
+    [
+      "examples/AGENTS.md",
+      2
+    ],
+    [
+      "src/AGENTS.md",
+      2
+    ],
+    [
+      "scripts/AGENTS.md",
+      2
+    ],
+    [
+      ".agents/skills/vercel-react-best-practices/AGENTS.md",
+      2
+    ],
+    [
+      ".ci/AGENTS.md",
+      1
+    ],
+    [
+      "daal4py/AGENTS.md",
+      1
+    ],
+    [
+      "doc/AGENTS.md",
+      1
+    ],
+    [
+      "onedal/AGENTS.md",
+      1
+    ]
+  ]
+}

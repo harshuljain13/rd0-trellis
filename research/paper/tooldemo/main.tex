@@ -1,0 +1,56 @@
+% Tool-demo / workshop paper (candidate venues: FSE or ICSE tool demos, an LLM4Code/AIware workshop). Venue not final.
+\documentclass[sigconf]{acmart}
+\usepackage{booktabs}
+\input{../generated/numbers}
+\setcopyright{none}
+\acmConference[Tool demonstration]{Under review}{2026}{venue to be decided}
+\settopmatter{printacmref=false}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\renewcommand{\showeprint}[2][]{}
+\begin{document}\sloppy
+\title{Trellis: Turning Agent Instructions and Review Corrections into CI Checks}
+\author{Harshul Jain}\affiliation{\institution{Independent Researcher}\city{}\country{}}
+\begin{abstract}
+Teams that work with coding agents write rules for them in files such as \texttt{AGENTS.md}, and reviewers keep correcting the same mistakes in agent pull requests (PRs). A rule written in prose is a request, not a check. Trellis is a command-line tool and GitHub Action with three commands. \texttt{audit} reads a repository's agent-instruction files and reports which rules no tool enforces, writing ESLint, Ruff or Trellis configuration for the ones a tool could check. \texttt{scan} flags common agent-PR problems with no configuration. \texttt{check} fails a PR only when it adds new violations of a rule marked as an error. Trellis runs on the CI runner, needs no LLM or API key, and does not check out PR code. We replayed \texttt{scan} on \nPRs{} multi-commit agent PRs from the AIDev dataset and counted a flag as a catch when the PR's own commits undid it. Before the run we fixed a bar for keeping a check on by default: at least 5\% of flags undone and at most 3 false alarms per 100 PRs. Only \nPass{} of the \nChecks{} built-in checks passed. We report the failures and recommend turning the other checks off by default.
+\end{abstract}
+\keywords{coding agents, code review, static analysis, AGENTS.md, GitHub Actions}
+\maketitle
+
+\section{Introduction}
+Coding agents now open hundreds of thousands of PRs on GitHub~\cite{li2026aidev}. Teams guide them with context files such as \texttt{AGENTS.md}, \texttt{CLAUDE.md} and \texttt{.cursor/rules}~\cite{chatlatanagulchai2025agentreadmes}. These files are prose. An agent can ignore them, and a reviewer has to notice when it does. In her talk \emph{All Code Is Slop (Except Mine)}~\cite{tan2026slop}, Lauren Tan argues that a correction given more than once belongs in the codebase's structure: in its APIs, a lint rule, a type, a test or a formal check, not in another line of prose. Her \texttt{/correct} skill~\cite{pstack} does this inside the editor. Trellis does it in CI, deterministically.
+
+Static analysis tools already exist~\cite{semgrep,johnson2013why,sadowski2018lessons}, and ratchet tools such as Betterer~\cite{betterer} and reviewdog~\cite{reviewdog} limit checks to new code. Trellis adds three things on top: it finds the unenforced rules a team has already written down, it ships checks for problems typical of agent PRs, and it measures those checks against real agent PRs before turning them on.
+
+\section{How Trellis Works}
+\textbf{\texttt{trellis audit [path | owner/repo]}} finds instruction files (16 path patterns, including nested \texttt{AGENTS.md}) and splits them into directive sentences. Each rule is classified as \emph{enforced} (an existing ESLint, Ruff, import-linter or Trellis config already checks it), \emph{enforceable} (Trellis recognizes the rule and writes the config that would check it, for example \texttt{no-restricted-imports} for a directory boundary) or a \emph{judgment} call. Recognition uses about 35 patterns plus import bans and directory boundaries. Anything it does not recognize is reported as a judgment call rather than guessed at.
+
+\textbf{\texttt{trellis scan <PR | diff>}} works with no configuration. It inspects only added lines and changed files, and skips generated, vendored and lock files. Its eight checks cover workaround comments, suppressions with no reason, commented-out code, and five scope checks: a lockfile change without its manifest, \texttt{.gitignore} and CI changes the PR does not explain, new summary documents, and files outside the paths the PR description names.
+
+\textbf{\texttt{trellis check}} is a ratchet. For each rule it counts occurrences added minus occurrences removed, so code that only moved is not new debt. A PR fails only if a rule marked \texttt{error} in \texttt{trellis.toml} gets worse. The report also shows how much debt remains.
+
+The \textbf{GitHub Action} reads configuration from the base branch and the diff from the API, so it never runs PR code. It posts a single comment and edits that comment on later runs, and it posts nothing on a clean PR. A contributor cannot hijack the comment by pasting its marker: Trellis edits only comments written by a bot or by its own token.
+
+\section{Evaluation}
+\begin{table}[t]\centering\caption{\texttt{trellis scan} on \nPRs{} AIDev agent PRs with two or more commits. Undone: across the PR's commits, the flagged line text is removed at least as often as it is added, or the flagged file's changes cancel out (baseline: \baseLine\% of distinct added code lines, \baseFile\% of changed files). FA/100: merged PRs where none of the check's flags were undone, per 100 PRs. The bar was fixed before the run: at least 5\% undone and at most 3 FA/100.}\label{tab:scan}
+\footnotesize\setlength{\tabcolsep}{3pt}\resizebox{\columnwidth}{!}{\input{../generated/tab_scan}}\end{table}
+
+\textbf{Scan.} We sampled \nPRs{} PRs with at least two commits from AIDev~\cite{li2026aidev} (seed 0; \nMerged{} merged) and ran every built-in check on every commit. AIDev records which commits belong to a PR but not their order, so we sum each PR's changes over its commits. For each file and each distinct line text, we count how often the PR adds and removes it. A line flag is \emph{undone} when no added copy survives, that is, when the text is removed at least as often as it is added. A file flag is undone when the PR's changes to that file cancel out. Lines are also rewritten in ordinary iteration, so each rate is compared with the same measure over all \nLines{} distinct added code lines and \nFiles{} changed files.
+
+Table~\ref{tab:scan} shows the results. The new-document check is the strongest: \undoneScopeNewDoc\% of its flags are undone, nearly four times the file baseline, at \faScopeNewDoc{} false alarms per 100 PRs. Suppressions with no reason also pass. Workaround comments and commented-out code are undone more often than the baseline but flag too many merged PRs. The lockfile, \texttt{.gitignore} and CI checks are at or below the baseline. The check for files outside the paths a PR names fires \flagsScopeUnrelated{} times per 100 PRs and fails badly. Following the bar fixed before the run, we recommend keeping only the checks that pass on by default in the Action and offering the others as opt-in warnings.
+
+\begin{table}[t]\centering\caption{Trellis and an LLM reviewer (Claude Haiku, \texttt{claude-haiku-5-5}, thinking off) on the same \lPRs{} PRs from the Table~\ref{tab:scan} sample (\lMerged{} merged) whose patches fit in \lMaxChars{} characters, so both see the same full input. Same definitions as Table~\ref{tab:scan}; line baseline on this subset: \lBase\%.}\label{tab:llm}
+\footnotesize\setlength{\tabcolsep}{3pt}\resizebox{\columnwidth}{!}{\input{../generated/tab_llm}}\end{table}
+
+\textbf{LLM baseline.} Is an LLM reviewer simply better? We gave Claude Haiku each PR's title, description and commit patches, described the eight Trellis issue classes plus a ninth for any other defect, and asked for JSON naming the file and the exact added line. Flags quoting a line the PR never added were dropped. PRs whose reply was not valid JSON were excluded. Table~\ref{tab:llm} scores both reviewers identically. Haiku flags \lLlmAllPct\% of PRs; its flags are undone \lLlmAllUndone\% of the time, below the \lBase\% line baseline, and on \lLlmAllFa{} of every 100 PRs all of its flags survive to merge. Restricted to Trellis's eight classes it is undone more often than Trellis's full set (\lLlmSameUndone\% vs.\ \lTrAllUndone\%) but leaves \lLlmSameFa{} false-alarm PRs per 100. The two Trellis checks that pass the bar flag \lTrTwoPct\% of PRs at \lTrTwoFa{} false alarms per 100 (\lTrTwoN{} flags, too few for a tight estimate). Haiku used \lTokPerPR{} tokens and \lSec{}\,s per PR; Trellis runs offline in milliseconds. On this proxy neither reviewer finds what gets corrected much better than chance; the difference is noise, and a quiet deterministic check is the cheaper way to post on every PR. The LLM can raise logic bugs Trellis cannot, which this proxy does not measure well.
+
+\textbf{Audit.} We ran \texttt{audit} on \aSampled{} randomly sampled AIDev repositories that are not forks. \aReachable{} could still be read through the GitHub API. Of these, \aWithInstructionFiles{} had at least one instruction file and \aWithRules{} had rules Trellis could extract, \aRules{} in total. Trellis classified \aEnforcedPct\% of the rules as enforced, \aEnforceablePct\% as enforceable and \aJudgmentPct\% as judgment calls. The extractor treats every bullet as a rule, so the judgment share includes headings, examples and process notes, and the per-repository view is more informative: \aReposWithUnenforcedCheckableRule{} of the \aWithRules{} repositories had at least one rule that nothing enforced and that Trellis could turn into a check. The most common were keeping PRs in scope, banning \texttt{any} and explaining CI changes. Most rules in agent context files describe process or design rather than code patterns a linter could check, and the pattern matcher's coverage is the main limit.
+
+\section{Limitations}
+Undone is a proxy for corrected, and because AIDev does not record commit order, it ignores order. Surviving flags are counted as false alarms, so the false-alarm rates are upper bounds. Single-commit PRs (40\% of AIDev) are excluded. The LLM comparison uses one model, one prompt and only PRs whose patches fit in \lMaxChars{} characters. Audit treats lint configuration as applying to the whole repository and uses patterns, not an LLM. Mining repeated review comments into rules is future work: in AIDev, few substantive human comments repeat an earlier one in the same repository.
+
+\section{Availability}
+Trellis is MIT-licensed, at \url{https://github.com/harshuljain13/rd0-trellis}, together with the evaluation scripts and raw results. It is the second tool in rd0, a family of tools that reduce review debt from agent PRs; the first, Jinx, warns about duplicate PRs.
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{../refs}
+\end{document}

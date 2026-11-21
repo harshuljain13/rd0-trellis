@@ -5,3 +5,12 @@ dist/
 build/
 .pytest_cache/
 .ruff_cache/
+
+# LaTeX build files (PDFs are committed)
+research/paper/**/*.aux
+research/paper/**/*.fdb_latexmk
+research/paper/**/*.fls
+research/paper/**/*.log
+research/paper/**/*.out
+research/paper/**/*.bbl
+research/paper/**/*.blg

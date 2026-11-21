@@ -134,11 +134,58 @@ Prefer a native rule (ESLint, Ruff, import-linter, a type) when one exists: it u
 editor already shows it. Use `[[rule]]` for the house rules no linter knows about. See
 [`docs/USERS_GUIDE.md`](docs/USERS_GUIDE.md) for every option, the CLI and the Python API.
 
+## Does it catch anything?
+
+We replayed `trellis scan` on 11,996 agent PRs from [AIDev](https://huggingface.co/datasets/hao-li/AIDev). Each had
+at least two commits, and 8,211 were merged. A flag counts as **undone** when, summed over the PR's commits, the flagged line is removed
+at least as often as it is added, or the flagged file's changes cancel out. This means someone, such as a reviewer, CI or the agent, corrected
+it. A **false alarm** is a merged PR where none of that check's flags were ever undone. This overstates false
+alarms: some surviving flags were real problems the team chose to accept. The pass bar was fixed before the run:
+at least 5% undone and at most 3 false alarms per 100 PRs.
+
+For comparison, by the same measure 10.8% of distinct added code lines are undone and 3.2% of changed files cancel out.
+
+| Check | Flags per 100 PRs | Undone [95% CI] | False alarms per 100 PRs | Verdict |
+|---|---:|---:|---:|---|
+| New summary/notes document | 9.0 | 12.4% [10.5, 14.5] | 1.7 | **pass** |
+| Suppression with no reason | 26.6 | 12.1% [11.0, 13.3] | 2.1 | **pass** |
+| Lockfile without manifest | 5.1 | 4.1% [2.8, 6.0] | 2.5 | fail |
+| CI config change | 29.8 | 2.1% [1.7, 2.6] | 2.7 | fail |
+| `.gitignore` change | 10.0 | 3.2% [2.3, 4.3] | 3.9 | fail |
+| Workaround comment | 20.6 | 15.8% [14.4, 17.3] | 4.3 | fail |
+| Commented-out code | 105.3 | 12.3% [11.8, 12.9] | 5.4 | fail |
+| File outside the paths the PR names | 812.7 | 4.0% [3.9, 4.2] | 16.3 | fail |
+
+Two of the eight checks pass. The others are useful as warnings in your own terminal, but on these numbers
+they are too noisy to post on every PR by default. AIDev does not record commit order, so changes are summed
+over each PR's commits. Scripts and raw results are in [`research/`](research/README.md).
+
+**Is an LLM reviewer better?** We asked Claude Haiku (`claude-haiku-5-5`, thinking off) to review 862 PRs from the
+same sample whose patches fit in 14,000 characters, so both reviewers saw the same full input (612 merged). Replies that
+were not valid JSON (13 of 875) were excluded. It was
+told the eight Trellis issue classes plus "any other defect", and scored by the same rules.
+
+| Reviewer | PRs flagged | Flags per 100 PRs | Undone | False alarms per 100 PRs |
+|---|---:|---:|---:|---:|
+| Trellis, the two passing checks | 2% | 2.2 | 15.8% (3 of 19) | 0.8 |
+| Trellis, all eight checks | 18% | 36.8 | 5.1% | 11.1 |
+| Haiku, the same eight classes | 55% | 88.2 | 12.1% | 32.1 |
+| Haiku, all issues including bugs | 88% | 257.1 | 9.2% | 48.6 |
+
+On this subset 11.3% of added code lines are undone anyway, so neither reviewer predicts corrections much better
+than chance. The difference is noise: Haiku comments on most PRs, and on 49 of every 100 none of its comments led to
+a change. It used about 3,700 tokens and 1.6 seconds per PR; Trellis is free, offline and deterministic. Haiku can
+raise logic bugs that Trellis cannot, and this proxy measures that poorly. Trellis is a quiet first filter, not a
+replacement for review.
+
+We also ran `trellis audit` on 300 randomly sampled AIDev repositories that are not forks. Of the 295 we could
+read, 135 had an agent-instruction file, and 61 of the 134 with extractable rules had at least one rule that
+nothing enforced and that Trellis could turn into a check. The most common were keeping PRs in scope, banning
+`any`, and explaining CI changes. Most extracted lines (98.4%) are judgment calls, because the extractor treats
+every bullet as a rule.
+
 ## What Trellis does not do (yet)
 
-- **No benchmark yet.** Jinx ships with one; Trellis's evaluation on [AIDev](https://huggingface.co/datasets/hao-li/AIDev)
-  (how often a flagged line was later changed in the same PR, and false alarms per 100 PRs) is the next PR.
-  Until then, treat the built-in checks as heuristics: they warn and never fail a PR.
 - **Regex, not syntax.** `[[rule]]` patterns match text on added lines. Use ESLint, Ruff or ast-grep for
   anything that needs the syntax tree.
 - **Audit is pattern-based.** It recognizes about 35 common rule shapes, plus import bans and directory boundaries; anything else is reported as a
@@ -163,6 +210,7 @@ editor already shows it. Use `[[rule]]` for the house rules no linter knows abou
 packages/rd0-trellis/   the installable library, CLI, tests and examples
 docs/                   user guide
 action.yml              the GitHub Action (must stay at the root)
+research/               AIDev evaluation scripts and results
 ```
 
 Dev: `pip install -e "./packages/rd0-trellis[dev]"` then `cd packages/rd0-trellis && python -m pytest -q`.

@@ -1,0 +1,138 @@
+{
+  "prs": 11996,
+  "merged": 8211,
+  "base_rate_line_undone": 0.1082,
+  "base_lines": 9151582,
+  "base_rate_file_reverted": 0.0324,
+  "base_files": 463599,
+  "agents": {
+    "OpenAI_Codex": 1066,
+    "Cursor": 379,
+    "Devin": 369,
+    "Claude_Code": 5125,
+    "Google_Jules": 87,
+    "Copilot": 4970
+  },
+  "rules": {
+    "bare-suppression": {
+      "flags": 3186,
+      "prs_flagged": 607,
+      "undone": 386,
+      "undone_rate": 0.1212,
+      "undone_ci95": [
+        0.1103,
+        0.1329
+      ],
+      "prs_with_undone_flag": 166,
+      "prs_all_flags_survived_merged": 257,
+      "false_alarm_prs_per_100_prs": 2.14,
+      "flags_per_100_prs": 26.56,
+      "surviving_flags_on_merged_per_100_prs": 14.55
+    },
+    "commented-out-code": {
+      "flags": 12635,
+      "prs_flagged": 1366,
+      "undone": 1560,
+      "undone_rate": 0.1235,
+      "undone_ci95": [
+        0.1178,
+        0.1293
+      ],
+      "prs_with_undone_flag": 304,
+      "prs_all_flags_survived_merged": 645,
+      "false_alarm_prs_per_100_prs": 5.38,
+      "flags_per_100_prs": 105.33,
+      "surviving_flags_on_merged_per_100_prs": 50.47
+    },
+    "scope:ci": {
+      "flags": 3576,
+      "prs_flagged": 572,
+      "undone": 75,
+      "undone_rate": 0.021,
+      "undone_ci95": [
+        0.0168,
+        0.0262
+      ],
+      "prs_with_undone_flag": 15,
+      "prs_all_flags_survived_merged": 325,
+      "false_alarm_prs_per_100_prs": 2.71,
+      "flags_per_100_prs": 29.81,
+      "surviving_flags_on_merged_per_100_prs": 13.05
+    },
+    "scope:gitignore": {
+      "flags": 1204,
+      "prs_flagged": 903,
+      "undone": 38,
+      "undone_rate": 0.0316,
+      "undone_ci95": [
+        0.0231,
+        0.043
+      ],
+      "prs_with_undone_flag": 37,
+      "prs_all_flags_survived_merged": 472,
+      "false_alarm_prs_per_100_prs": 3.93,
+      "flags_per_100_prs": 10.04,
+      "surviving_flags_on_merged_per_100_prs": 5.34
+    },
+    "scope:lockfile": {
+      "flags": 609,
+      "prs_flagged": 516,
+      "undone": 25,
+      "undone_rate": 0.0411,
+      "undone_ci95": [
+        0.028,
+        0.0599
+      ],
+      "prs_with_undone_flag": 23,
+      "prs_all_flags_survived_merged": 305,
+      "false_alarm_prs_per_100_prs": 2.54,
+      "flags_per_100_prs": 5.08,
+      "surviving_flags_on_merged_per_100_prs": 3.0
+    },
+    "scope:new-doc": {
+      "flags": 1075,
+      "prs_flagged": 420,
+      "undone": 133,
+      "undone_rate": 0.1237,
+      "undone_ci95": [
+        0.1054,
+        0.1448
+      ],
+      "prs_with_undone_flag": 61,
+      "prs_all_flags_survived_merged": 199,
+      "false_alarm_prs_per_100_prs": 1.66,
+      "flags_per_100_prs": 8.96,
+      "surviving_flags_on_merged_per_100_prs": 3.79
+    },
+    "scope:unrelated": {
+      "flags": 97491,
+      "prs_flagged": 3385,
+      "undone": 3944,
+      "undone_rate": 0.0405,
+      "undone_ci95": [
+        0.0392,
+        0.0417
+      ],
+      "prs_with_undone_flag": 511,
+      "prs_all_flags_survived_merged": 1951,
+      "false_alarm_prs_per_100_prs": 16.26,
+      "flags_per_100_prs": 812.7,
+      "surviving_flags_on_merged_per_100_prs": 445.7
+    },
+    "workaround-comment": {
+      "flags": 2469,
+      "prs_flagged": 1109,
+      "undone": 391,
+      "undone_rate": 0.1584,
+      "undone_ci95": [
+        0.1445,
+        0.1733
+      ],
+      "prs_with_undone_flag": 249,
+      "prs_all_flags_survived_merged": 512,
+      "false_alarm_prs_per_100_prs": 4.27,
+      "flags_per_100_prs": 20.58,
+      "surviving_flags_on_merged_per_100_prs": 9.73
+    }
+  }
+}
